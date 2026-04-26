@@ -1,0 +1,416 @@
+{% extends 'base.html' %}
+{% block page_title %}ESP32 Hardware Bench{% endblock %}
+{% block breadcrumb %}Home &rsaquo; Simulator &rsaquo; Circuit & Logic{% endblock %}
+
+{% block content %}
+<style>
+  .sim-layout { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
+  
+  /* Circuit Section */
+  .circuit-card { background: var(--bg-surface); border: 1px solid var(--bg-border); border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--bg-border); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); }
+  .card-header h3 { font-family: var(--font-display); font-size: 18px; color: var(--gold-2); }
+  
+  .circuit-viewport { 
+    background: #1a1a1a; 
+    height: 400px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    position: relative;
+    padding: 20px;
+  }
+  
+  /* SVG Circuit Styles */
+  .wire { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .wire-red { stroke: #e74c3c; }
+  .wire-black { stroke: #2c3e50; }
+  .wire-green { stroke: #2ecc71; }
+  .wire-blue { stroke: #3498db; }
+  .wire-yellow { stroke: #f1c40f; }
+  
+  .component-label { font-family: var(--font-mono); font-size: 8px; fill: #aaa; text-transform: uppercase; }
+  .led-glow { filter: drop-shadow(0 0 5px var(--glow-color)); transition: filter 0.3s; }
+
+  /* Controls Section */
+  .controls-panel { display: flex; flex-direction: column; gap: 20px; }
+  .bench-card { background: var(--bg-surface); border: 1px solid var(--bg-border); border-radius: 8px; padding: 20px; }
+  
+  .bench-title { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--gold-1); text-transform: uppercase; margin-bottom: 15px; display: block; }
+
+  /* Auto-Pilot Mode */
+  .auto-pilot-box { 
+    background: var(--bg-raised); 
+    border: 1px solid var(--gold-dim); 
+    border-radius: 6px; 
+    padding: 15px; 
+    margin-bottom: 20px;
+    border-left: 4px solid var(--gold-1);
+  }
+  .auto-pilot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .auto-status { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--gold-2); }
+  .progress-container { height: 4px; background: var(--bg-border); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--gold-1); width: 0%; transition: width 0.1s linear; }
+
+  /* Scenario Pills */
+  .scenario-cycle { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+  .cycle-pill { 
+    font-family: var(--font-mono); font-size: 10px; padding: 4px 10px; border-radius: 15px; 
+    background: var(--bg-raised); border: 1px solid var(--bg-border); color: var(--text-muted);
+    transition: all 0.3s;
+  }
+  .cycle-pill.active { border-color: var(--gold-1); color: var(--gold-1); background: var(--gold-dim); }
+
+  /* Sliders & Values */
+  .sensor-readout { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .readout-val { font-family: var(--font-display); font-size: 28px; color: var(--text-primary); }
+  .readout-val span { font-size: 14px; color: var(--text-muted); }
+  
+  .slider-box { margin-bottom: 20px; }
+  input[type=range] { width: 100%; -webkit-appearance: none; height: 4px; background: var(--bg-border); border-radius: 2px; outline: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--gold-1); cursor: pointer; border: 2px solid var(--bg-void); }
+
+  /* Buttons */
+  .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  .bench-btn { 
+    padding: 12px; border-radius: 5px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; 
+    cursor: pointer; transition: all 0.2s; border: 1px solid var(--bg-border); background: var(--bg-raised); color: var(--text-secondary);
+  }
+  .bench-btn.primary { border-color: var(--gold-1); color: var(--gold-2); background: var(--gold-dim); }
+  .bench-btn.primary:hover { background: var(--gold-1); color: var(--bg-void); }
+  .bench-btn.active { background: var(--gold-1); color: var(--bg-void); }
+
+  /* Serial Monitor */
+  .serial-monitor { 
+    background: #0a0a0a; border: 1px solid var(--bg-border); border-radius: 6px; 
+    height: 300px; overflow-y: auto; padding: 15px; font-family: var(--font-mono); font-size: 12px; line-height: 1.6;
+  }
+  .serial-line { margin-bottom: 4px; display: flex; gap: 10px; }
+  .s-ts { color: var(--text-muted); flex-shrink: 0; }
+  .s-msg { color: #ccc; }
+  .s-ok { color: var(--success); }
+  .s-err { color: var(--danger); }
+  .s-ai { color: var(--gold-2); }
+
+  /* Interactive Elements */
+  .led-pin { fill: #333; transition: fill 0.3s; }
+  .led-on { fill: #ff0000; filter: drop-shadow(0 0 5px #ff0000); }
+  .led-on-green { fill: #00ff00; filter: drop-shadow(0 0 5px #00ff00); }
+</style>
+
+<div class="sim-layout">
+  
+  <!-- Left: Circuit & Dashboard -->
+  <div class="main-bench">
+    
+    <!-- Breadboard View -->
+    <div class="circuit-card">
+      <div class="card-header">
+        <h3>Tinkercad-Style Circuit Layout</h3>
+        <span class="pill pill-gold">LIVE SCHEMATIC</span>
+      </div>
+      <div class="circuit-viewport" id="circuit-svg-container">
+        <!-- SVG Breadboard Diagram -->
+        <svg viewBox="0 0 600 350" width="100%" height="100%">
+          <!-- Breadboard -->
+          <rect x="50" y="50" width="500" height="250" rx="10" fill="#e0e0e0" />
+          <pattern id="holes" x="0" y="0" width="15" height="15" patternUnits="userSpaceOnUse">
+            <circle cx="7.5" cy="7.5" r="2" fill="#bbb" />
+          </pattern>
+          <rect x="60" y="60" width="480" height="230" fill="url(#holes)" />
+          
+          <!-- ESP32 Module -->
+          <rect x="150" y="80" width="120" height="180" rx="5" fill="#222" />
+          <text x="210" y="105" text-anchor="middle" fill="#fff" font-family="monospace" font-size="12">ESP32-WROOM</text>
+          <rect x="160" y="120" width="100" height="130" fill="#333" stroke="#444" />
+          <circle cx="170" cy="135" r="3" fill="#666" />
+          <circle cx="170" cy="155" r="3" fill="#666" />
+          <circle cx="170" cy="175" r="3" fill="#666" />
+          
+          <!-- DHT11 Sensor -->
+          <rect x="300" y="100" width="40" height="60" rx="2" fill="#3498db" />
+          <rect x="305" y="105" width="30" height="40" fill="none" stroke="#fff" stroke-width="0.5" />
+          <text x="320" y="175" text-anchor="middle" class="component-label">DHT11</text>
+          
+          <!-- MQ2 Sensor -->
+          <circle cx="450" cy="130" r="30" fill="#7f8c8d" stroke="#95a5a6" stroke-width="2" />
+          <circle cx="450" cy="130" r="22" fill="none" stroke="#bdc3c7" stroke-dasharray="2,2" />
+          <text x="450" y="175" text-anchor="middle" class="component-label">MQ2 GAS</text>
+          
+          <!-- PIR Sensor -->
+          <circle cx="380" cy="230" r="25" fill="#f1c40f" />
+          <circle cx="380" cy="230" r="18" fill="#fff" fill-opacity="0.3" />
+          <text x="380" y="270" text-anchor="middle" class="component-label">HC-SR501</text>
+          
+          <!-- Wires -->
+          <!-- GND -->
+          <path d="M250 250 L 300 250 L 300 160" class="wire wire-black" />
+          <path d="M250 250 L 450 250 L 450 160" class="wire wire-black" />
+          
+          <!-- VCC 3.3V -->
+          <path d="M250 100 L 320 100" class="wire wire-red" />
+          <path d="M250 100 L 420 100 L 420 130" class="wire wire-red" />
+          
+          <!-- Data DHT11 (GPIO4) -->
+          <path d="M250 140 L 310 140" class="wire wire-blue" />
+          
+          <!-- Data MQ2 (GPIO34) -->
+          <path d="M250 180 L 430 180 L 430 155" class="wire wire-green" />
+          
+          <!-- Data PIR (GPIO5) -->
+          <path d="M250 220 L 360 220 L 360 230" class="wire wire-yellow" />
+
+          <!-- Interactive LEDs on ESP32 -->
+          <circle id="pwr-led" cx="160" cy="90" r="3" class="led-pin led-on-green" />
+          <circle id="act-led" cx="170" cy="90" r="3" class="led-pin" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Auto-Pilot Engine -->
+    <div class="auto-pilot-box">
+      <div class="auto-pilot-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="auto-status" id="engine-status">ENGINE OFFLINE</span>
+          <span class="pill" id="scenario-name">--</span>
+        </div>
+        <button class="bench-btn primary" id="auto-pilot-toggle" onclick="toggleAutoPilot()">START AUTO-PILOT</button>
+      </div>
+      <div class="scenario-cycle" id="scenario-list">
+        <span class="cycle-pill" id="sc-normal">Normal</span>
+        <span class="cycle-pill" id="sc-checkin">Check-In</span>
+        <span class="cycle-pill" id="sc-smoking">Smoking</span>
+        <span class="cycle-pill" id="sc-fire">Fire Hazard</span>
+        <span class="cycle-pill" id="sc-cooldown">Cooling Down</span>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar" id="auto-progress"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right: Control Bench -->
+  <div class="controls-panel">
+    
+    <div class="bench-card">
+      <span class="bench-title">Manual Injection</span>
+      
+      <div class="slider-box">
+        <div class="sensor-readout">
+          <label class="field-label">Temperature</label>
+          <div class="readout-val"><span id="val-temp">22.0</span> <span>°C</span></div>
+        </div>
+        <input type="range" id="slide-temp" min="15" max="60" step="0.1" value="22" oninput="manualUpdate()">
+      </div>
+
+      <div class="slider-box">
+        <div class="sensor-readout">
+          <label class="field-label">MQ2 Gas</label>
+          <div class="readout-val"><span id="val-gas">350</span> <span>PPM</span></div>
+        </div>
+        <input type="range" id="slide-gas" min="100" max="2500" step="1" value="350" oninput="manualUpdate()">
+      </div>
+
+      <div class="slider-box">
+        <label class="field-label">PIR Motion</label>
+        <button class="bench-btn" id="btn-pir" style="width:100%" onclick="togglePIR()">NO MOTION</button>
+      </div>
+
+      <div class="btn-group">
+        <button class="bench-btn primary" onclick="sendBurst()">SEND SINGLE</button>
+        <button class="bench-btn" onclick="resetSimulator()">RESET</button>
+      </div>
+    </div>
+
+    <div class="bench-card" style="flex:1; display:flex; flex-direction:column;">
+      <span class="bench-title">Serial Monitor</span>
+      <div class="serial-monitor" id="serial-box">
+        <div class="serial-line"><span class="s-ts">[--:--:--]</span> <span class="s-msg">System initialized. Ready for simulation.</span></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Configuration
+  const ENDPOINT = '/api/v1/update_sensors';
+  const ROOM_ID = '101';
+  
+  // Scenarios Definition
+  const SCENARIOS = [
+    { name: 'Normal', id: 'sc-normal', temp: 22.0, gas: 350, motion: false, duration: 8000 },
+    { name: 'Check-In', id: 'sc-checkin', temp: 23.5, gas: 410, motion: true, duration: 6000 },
+    { name: 'Smoking', id: 'sc-smoking', temp: 25.0, gas: 720, motion: true, duration: 10000 },
+    { name: 'Fire Hazard', id: 'sc-fire', temp: 42.0, gas: 1850, motion: true, duration: 12000 },
+    { name: 'Cooling Down', id: 'sc-cooldown', temp: 28.0, gas: 500, motion: false, duration: 8000 }
+  ];
+
+  let currentScenarioIdx = 0;
+  let autoPilotActive = false;
+  let scenarioStartTime = 0;
+  let autoInterval = null;
+  let pirState = false;
+
+  // Manual values
+  let mTemp = 22.0;
+  let mGas = 350;
+
+  function log(msg, type = 'msg') {
+    const box = document.getElementById('serial-box');
+    const ts = new Date().toLocaleTimeString([], { hour12: false });
+    const line = document.createElement('div');
+    line.className = 'serial-line';
+    let cls = 's-msg';
+    if(type === 'ok') cls = 's-ok';
+    if(type === 'err') cls = 's-err';
+    if(type === 'ai') cls = 's-ai';
+    
+    line.innerHTML = `<span class="s-ts">[${ts}]</span> <span class="${cls}">${msg}</span>`;
+    box.appendChild(line);
+    box.scrollTop = box.scrollHeight;
+    
+    // Blink activity LED
+    const actLed = document.getElementById('act-led');
+    actLed.classList.add('led-on-green');
+    setTimeout(() => actLed.classList.remove('led-on-green'), 150);
+  }
+
+  function updateDisplays() {
+    document.getElementById('val-temp').innerText = mTemp.toFixed(1);
+    document.getElementById('val-gas').innerText = Math.round(mGas);
+    document.getElementById('slide-temp').value = mTemp;
+    document.getElementById('slide-gas').value = mGas;
+    
+    const pirBtn = document.getElementById('btn-pir');
+    pirBtn.innerText = pirState ? "MOTION DETECTED" : "NO MOTION";
+    pirBtn.classList.toggle('active', pirState);
+  }
+
+  function manualUpdate() {
+    mTemp = parseFloat(document.getElementById('slide-temp').value);
+    mGas = parseInt(document.getElementById('slide-gas').value);
+    updateDisplays();
+  }
+
+  function togglePIR() {
+    pirState = !pirState;
+    updateDisplays();
+  }
+
+  function toggleAutoPilot() {
+    autoPilotActive = !autoPilotActive;
+    const btn = document.getElementById('auto-pilot-toggle');
+    const status = document.getElementById('engine-status');
+    
+    if(autoPilotActive) {
+      btn.innerText = "STOP AUTO-PILOT";
+      btn.classList.add('active');
+      status.innerText = "AUTO-PILOT ACTIVE";
+      currentScenarioIdx = 0;
+      startScenario(0);
+      autoInterval = setInterval(engineTick, 100);
+      log("Auto-pilot engaged. Starting scenario loop...", "ok");
+    } else {
+      btn.innerText = "START AUTO-PILOT";
+      btn.classList.remove('active');
+      status.innerText = "ENGINE OFFLINE";
+      clearInterval(autoInterval);
+      document.getElementById('auto-progress').style.width = '0%';
+      log("Auto-pilot disengaged.", "err");
+      resetPills();
+    }
+  }
+
+  function resetPills() {
+    SCENARIOS.forEach(s => document.getElementById(s.id).classList.remove('active'));
+    document.getElementById('scenario-name').innerText = "--";
+  }
+
+  function startScenario(idx) {
+    resetPills();
+    const s = SCENARIOS[idx];
+    document.getElementById(s.id).classList.add('active');
+    document.getElementById('scenario-name').innerText = s.name.toUpperCase();
+    scenarioStartTime = Date.now();
+    
+    // Set targets for interpolation or just jump
+    mTemp = s.temp;
+    mGas = s.gas;
+    pirState = s.motion;
+    updateDisplays();
+    
+    sendSensorData();
+  }
+
+  function engineTick() {
+    if(!autoPilotActive) return;
+    
+    const s = SCENARIOS[currentScenarioIdx];
+    const elapsed = Date.now() - scenarioStartTime;
+    const pct = (elapsed / s.duration) * 100;
+    
+    document.getElementById('auto-progress').style.width = Math.min(100, pct) + '%';
+    
+    // Every 3 seconds in a scenario, send a data point
+    if(Math.floor(elapsed / 3000) > Math.floor((elapsed-100) / 3000)) {
+      // Add slight jitter
+      mTemp += (Math.random() - 0.5) * 0.4;
+      mGas += (Math.random() - 0.5) * 20;
+      updateDisplays();
+      sendSensorData();
+    }
+
+    if(elapsed >= s.duration) {
+      currentScenarioIdx = (currentScenarioIdx + 1) % SCENARIOS.length;
+      startScenario(currentScenarioIdx);
+    }
+  }
+
+  async function sendSensorData() {
+    const payload = {
+      room_id: ROOM_ID,
+      temperature: parseFloat(mTemp.toFixed(2)),
+      gas_level: Math.round(mGas),
+      motion: pirState ? 1 : 0
+    };
+
+    try {
+      const response = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await response.json();
+      log(`TX: T=${payload.temperature} G=${payload.gas_level} M=${payload.motion}`);
+      
+      if(data.ai_alert) {
+        log(`RX: AI ANOMALY DETECTED! (Score: ${data.score})`, "ai");
+      } else {
+        log(`RX: System Normal (Score: ${data.score})`, "ok");
+      }
+    } catch (e) {
+      log(`TX ERROR: ${e.message}`, "err");
+    }
+  }
+
+  function sendBurst() {
+    log("Manual burst initiated...");
+    sendSensorData();
+  }
+
+  function resetSimulator() {
+    mTemp = 22.0;
+    mGas = 350;
+    pirState = false;
+    updateDisplays();
+    log("Manual reset performed.");
+  }
+</script>
+{% endblock %}

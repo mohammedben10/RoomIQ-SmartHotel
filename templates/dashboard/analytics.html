@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="grid-container">
+  
+  <div class="panel">
+    <div class="panel-header">
+      <h3>Anomaly Detection Model Info</h3>
+      <span class="pill" style="color: var(--accent-cyan-2); border-color: var(--brand-blue-1);">Scikit-Learn</span>
+    </div>
+    <div class="panel-body-a">
+      <div class="kpi-row" style="margin-bottom:0;">
+        <div class="kpi-card teal" style="padding: 10px 20px;">
+          <div class="kpi-label">Precision</div>
+          <div class="kpi-value mono">1.00</div>
+        </div>
+        <div class="kpi-card teal" style="padding: 10px 20px;">
+          <div class="kpi-label">Recall</div>
+          <div class="kpi-value mono">0.94</div>
+        </div>
+      </div>
+      <br>
+      <div class="room-identity">
+        <div>
+          <div class="room-num title-font">Isolation Forest</div>
+          <div class="room-desc mono">Current Contamination Rate: 3.25%</div>
+        </div>
+        <div class="occ-pill occ-occ" style="background-color: var(--bg-1);">v 1.8.0</div>
+      </div>
+      <p style="color: var(--text-muted-2); font-size: 14px; line-height: 1.6;">
+        The AI Security Model analyzes multi-dimensional telemetry (temperature, gas MQ-2, deltas) across a 5,000-sample dataset to isolate anomalies like cigarettes and fires without manual thresholds.
+      </p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>Confusion Matrix</h3>
+      <span class="pill">Test Set</span>
+    </div>
+    <div class="panel-body-a" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+      <table style="width: 100%; border-collapse: collapse; text-align: center; color: var(--text-muted-1);">
+        <tr>
+          <td></td>
+          <td class="mono" style="padding-bottom: 10px;">Predicted Normal</td>
+          <td class="mono" style="padding-bottom: 10px;">Predicted Anomaly</td>
+        </tr>
+        <tr>
+          <td class="mono" style="text-align: right; padding-right: 10px;">Actual Normal</td>
+          <td style="background-color: var(--bg-4); padding: 20px; border-radius: 4px; color: var(--success); font-size: 24px; font-weight: 700;">1931</td>
+          <td style="background-color: var(--bg-3); padding: 20px; border-radius: 4px;">4</td>
+        </tr>
+        <tr>
+          <td class="mono" style="text-align: right; padding-right: 10px; padding-top: 10px;">Actual Anomaly</td>
+          <td style="background-color: var(--bg-3); padding: 20px; border-radius: 4px; margin-top: 10px;">4</td>
+          <td style="background-color: var(--bg-4); padding: 20px; border-radius: 4px; color: var(--danger-1); font-size: 24px; font-weight: 700;">61</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelector('.breadcrumb-subtitle').innerText = "Home / Security / AI Analytics";
+  document.querySelector('.topbar h2').innerText = "AI Analytics";
+</script>
+{% endblock %}

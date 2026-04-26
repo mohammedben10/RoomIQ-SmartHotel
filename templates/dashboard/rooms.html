@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="panel">
+  <div class="panel-header">
+    <h3>Room Directory</h3>
+    <div style="display: flex; gap: 8px;">
+      <span class="pill" style="color: var(--brand-blue-2); border-color: var(--brand-blue-1);">Floor 1 & 2</span>
+    </div>
+  </div>
+  
+  <div class="panel-body-a" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+    
+    <!-- Room Card 101 -->
+    <div class="sensor-tile" style="border-left: 4px solid var(--success);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div class="title-font" style="font-size: 20px;">101 &middot; King</div>
+        <span class="pill" style="color: var(--text-muted-1);">Unoccupied</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted-2);">
+        <span class="mono">22.1 °C</span>
+        <span class="mono">360 PPM</span>
+        <span class="mono" style="color: var(--warning);">AC: Off</span>
+      </div>
+    </div>
+
+    <!-- Room Card 102 -->
+    <div class="sensor-tile" style="border-left: 4px solid var(--success);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div class="title-font" style="font-size: 20px;">102 &middot; Double</div>
+        <span class="pill" style="color: var(--success); border-color: var(--success);">Occupied</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted-2);">
+        <span class="mono">21.5 °C</span>
+        <span class="mono">345 PPM</span>
+        <span class="mono" style="color: var(--accent-cyan-2);">AC: Cooling</span>
+      </div>
+    </div>
+
+    <!-- Room Card 214 -->
+    <div class="sensor-tile" style="border-left: 4px solid var(--danger-1);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div class="title-font" style="font-size: 20px;">214 &middot; King</div>
+        <span class="pill pulse-red" style="color: var(--danger-1); border-color: var(--danger-1);">Fire Hazard Alert</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted-2);">
+        <span class="mono" style="color: var(--danger-1);">32.8 °C</span>
+        <span class="mono" style="color: var(--danger-1);">1420 PPM</span>
+        <span class="mono" style="color: var(--warning);">AC: Off</span>
+      </div>
+    </div>
+    
+  </div>
+</div>
+<script>
+  document.querySelector('.breadcrumb-subtitle').innerText = "Home / Directory / Rooms";
+  document.querySelector('.topbar h2').innerText = "Rooms Management";
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="panel">
+  <div class="panel-header">
+    <h3>Global Security & Anomaly Logs</h3>
+    <div style="display: flex; gap: 8px;">
+      <span class="pill pulse-red" style="color: var(--danger-1); border-color: var(--danger-1);">2 Unresolved</span>
+    </div>
+  </div>
+  
+  <div class="feed-container" style="height: auto; max-height: 600px;">
+    <!-- Log Items -->
+    <div class="log-item log-critical pulse-red">
+      <div class="log-header">
+        <span class="log-time mono">09:12 Today</span>
+        <span class="log-badge log-badge-crit mono">🔴 CRITICAL</span>
+        <span style="font-weight: 700; color: var(--text-main);">Room 214</span>
+      </div>
+      <div class="log-msg" style="font-size: 14px;">Fire hazard detected (High temp gradient + MQ2 spike). Staff notified. Alarm triggered via MQTT.</div>
+      <div class="log-sub mono">IF Score: 0.96 | G: 1420 | T: +8.5 | STATUS: UNRESOLVED</div>
+    </div>
+    
+    <div class="log-item log-warning">
+      <div class="log-header">
+        <span class="log-time mono">10:05 Today</span>
+        <span class="log-badge log-badge-warn mono">⚠ WARN</span>
+        <span style="font-weight: 700; color: var(--text-main);">Room 320</span>
+      </div>
+      <div class="log-msg" style="font-size: 14px;">Suspicious gas pattern. Possible smoking violation. Security protocol activated.</div>
+      <div class="log-sub mono">IF Score: 0.74 | G: 510 | T: +1.2 | STATUS: PENDING</div>
+    </div>
+    
+    <div class="log-item log-normal">
+      <div class="log-header">
+        <span class="log-time mono">Yesterday, 14:20</span>
+        <span class="log-badge log-badge-warn mono">⚠ WARN</span>
+        <span style="font-weight: 700; color: var(--text-main);">Room 101</span>
+      </div>
+      <div class="log-msg" style="font-size: 14px;">Elevated MQ-2 levels (Smoking). Warning sent to guest.</div>
+      <div class="log-sub mono">IF Score: 0.62 | G: 610 | T: +0.4 | STATUS: RESOLVED</div>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelector('.breadcrumb-subtitle').innerText = "Home / Security / Alerts Database";
+  document.querySelector('.topbar h2').innerText = "Alert Center";
+</script>
+{% endblock %}
