@@ -1,66 +1,161 @@
 {% extends 'base.html' %}
 
+{% block page_title %}AI Analytics Engine{% endblock %}
+{% block breadcrumb %}Home &rsaquo; Intelligence &rsaquo; Analytics{% endblock %}
+
 {% block content %}
-<div class="grid-container">
+<style>
+  .analytics-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
   
-  <div class="panel">
-    <div class="panel-header">
-      <h3>Anomaly Detection Model Info</h3>
-      <span class="pill" style="color: var(--accent-cyan-2); border-color: var(--brand-blue-1);">Scikit-Learn</span>
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-border);
+    border-radius: 8px;
+    padding: 24px;
+  }
+  
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--gold-2);
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--bg-border);
+    padding-bottom: 12px;
+  }
+
+  .kpi-row-small {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-mini {
+    background: var(--bg-raised);
+    border: 1px solid var(--bg-border);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+  }
+  .kpi-mini-val { font-family: var(--font-display); font-size: 28px; font-weight: 700; line-height: 1; }
+  .kpi-mini-lbl { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
+
+  /* CSS Bar Chart */
+  .chart-container {
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding-top: 20px;
+    border-bottom: 1px solid var(--bg-border);
+    border-left: 1px solid var(--bg-border);
+    position: relative;
+    padding-left: 10px;
+  }
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    position: relative;
+  }
+  .bar {
+    width: 60%;
+    background: linear-gradient(to top, var(--bg-raised), var(--gold-1));
+    border-radius: 4px 4px 0 0;
+    transition: height 1s ease-out;
+  }
+  .bar.danger { background: linear-gradient(to top, var(--bg-raised), var(--danger)); }
+  .bar.success { background: linear-gradient(to top, var(--bg-raised), var(--success)); }
+  .bar-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    position: absolute;
+    bottom: -25px;
+  }
+
+  /* Progress Bars */
+  .feat-row { margin-bottom: 16px; }
+  .feat-lbl { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+  .feat-bar-bg { width: 100%; height: 6px; background: var(--bg-raised); border-radius: 3px; overflow: hidden; }
+  .feat-bar-fill { height: 100%; background: var(--gold-2); border-radius: 3px; }
+  .feat-bar-fill.teal { background: var(--success); }
+  .feat-bar-fill.burgundy { background: var(--danger); }
+</style>
+
+<div class="analytics-grid slide-in">
+  <!-- Left Column -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    
+    <div class="kpi-row-small">
+      <div class="kpi-mini">
+        <div class="kpi-mini-val" style="color: var(--success);">98.4%</div>
+        <div class="kpi-mini-lbl">Model Accuracy</div>
+      </div>
+      <div class="kpi-mini">
+        <div class="kpi-mini-val" style="color: var(--gold-2);">42ms</div>
+        <div class="kpi-mini-lbl">Inference Latency</div>
+      </div>
+      <div class="kpi-mini">
+        <div class="kpi-mini-val" style="color: var(--danger);">12</div>
+        <div class="kpi-mini-lbl">Anomalies (24h)</div>
+      </div>
     </div>
-    <div class="panel-body-a">
-      <div class="kpi-row" style="margin-bottom:0;">
-        <div class="kpi-card teal" style="padding: 10px 20px;">
-          <div class="kpi-label">Precision</div>
-          <div class="kpi-value mono">1.00</div>
-        </div>
-        <div class="kpi-card teal" style="padding: 10px 20px;">
-          <div class="kpi-label">Recall</div>
-          <div class="kpi-value mono">0.94</div>
-        </div>
+
+    <div class="card">
+      <div class="card-title">Anomaly Frequency (Last 7 Days)</div>
+      <div class="chart-container">
+        <!-- CSS Chart Bars -->
+        <div class="bar-group"><div class="bar success" style="height: 10%;"></div><div class="bar-label">Mon</div></div>
+        <div class="bar-group"><div class="bar success" style="height: 20%;"></div><div class="bar-label">Tue</div></div>
+        <div class="bar-group"><div class="bar" style="height: 40%;"></div><div class="bar-label">Wed</div></div>
+        <div class="bar-group"><div class="bar danger" style="height: 85%;"></div><div class="bar-label">Thu</div></div>
+        <div class="bar-group"><div class="bar success" style="height: 15%;"></div><div class="bar-label">Fri</div></div>
+        <div class="bar-group"><div class="bar success" style="height: 5%;"></div><div class="bar-label">Sat</div></div>
+        <div class="bar-group"><div class="bar" style="height: 30%;"></div><div class="bar-label">Sun</div></div>
       </div>
-      <br>
-      <div class="room-identity">
-        <div>
-          <div class="room-num title-font">Isolation Forest</div>
-          <div class="room-desc mono">Current Contamination Rate: 3.25%</div>
-        </div>
-        <div class="occ-pill occ-occ" style="background-color: var(--bg-1);">v 1.8.0</div>
-      </div>
-      <p style="color: var(--text-muted-2); font-size: 14px; line-height: 1.6;">
-        The AI Security Model analyzes multi-dimensional telemetry (temperature, gas MQ-2, deltas) across a 5,000-sample dataset to isolate anomalies like cigarettes and fires without manual thresholds.
-      </p>
     </div>
   </div>
 
-  <div class="panel">
-    <div class="panel-header">
-      <h3>Confusion Matrix</h3>
-      <span class="pill">Test Set</span>
+  <!-- Right Column -->
+  <div class="card">
+    <div class="card-title">Random Forest Feature Importance</div>
+    
+    <div class="feat-row">
+      <div class="feat-lbl"><span>Temperature</span> <span>35%</span></div>
+      <div class="feat-bar-bg"><div class="feat-bar-fill burgundy" style="width: 35%;"></div></div>
     </div>
-    <div class="panel-body-a" style="display: flex; justify-content: center; align-items: center; height: 100%;">
-      <table style="width: 100%; border-collapse: collapse; text-align: center; color: var(--text-muted-1);">
-        <tr>
-          <td></td>
-          <td class="mono" style="padding-bottom: 10px;">Predicted Normal</td>
-          <td class="mono" style="padding-bottom: 10px;">Predicted Anomaly</td>
-        </tr>
-        <tr>
-          <td class="mono" style="text-align: right; padding-right: 10px;">Actual Normal</td>
-          <td style="background-color: var(--bg-4); padding: 20px; border-radius: 4px; color: var(--success); font-size: 24px; font-weight: 700;">1931</td>
-          <td style="background-color: var(--bg-3); padding: 20px; border-radius: 4px;">4</td>
-        </tr>
-        <tr>
-          <td class="mono" style="text-align: right; padding-right: 10px; padding-top: 10px;">Actual Anomaly</td>
-          <td style="background-color: var(--bg-3); padding: 20px; border-radius: 4px; margin-top: 10px;">4</td>
-          <td style="background-color: var(--bg-4); padding: 20px; border-radius: 4px; color: var(--danger-1); font-size: 24px; font-weight: 700;">61</td>
-        </tr>
-      </table>
+    <div class="feat-row">
+      <div class="feat-lbl"><span>CO2 Level</span> <span>28%</span></div>
+      <div class="feat-bar-bg"><div class="feat-bar-fill" style="width: 28%;"></div></div>
+    </div>
+    <div class="feat-row">
+      <div class="feat-lbl"><span>Sound Level</span> <span>22%</span></div>
+      <div class="feat-bar-bg"><div class="feat-bar-fill teal" style="width: 22%;"></div></div>
+    </div>
+    <div class="feat-row">
+      <div class="feat-lbl"><span>Humidity</span> <span>10%</span></div>
+      <div class="feat-bar-bg"><div class="feat-bar-fill" style="width: 10%;"></div></div>
+    </div>
+    <div class="feat-row">
+      <div class="feat-lbl"><span>PIR Motion</span> <span>5%</span></div>
+      <div class="feat-bar-bg"><div class="feat-bar-fill teal" style="width: 5%;"></div></div>
+    </div>
+
+    <div style="margin-top: 40px; padding: 16px; background: rgba(201, 168, 76, 0.05); border: 1px solid rgba(201, 168, 76, 0.2); border-radius: 6px;">
+      <h4 style="color: var(--gold-2); font-family: var(--font-display); font-size: 16px; margin-bottom: 8px;">Model Status</h4>
+      <p style="color: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; line-height: 1.5;">
+        The Isolation Forest and Random Forest pipelines are fully operational. Continuous learning is enabled. Next scheduled retraining: <strong>02:00 AM UTC</strong>.
+      </p>
     </div>
   </div>
 </div>
-<script>
-  document.querySelector('.breadcrumb-subtitle').innerText = "Home / Security / AI Analytics";
-  document.querySelector('.topbar h2').innerText = "AI Analytics";
-</script>
 {% endblock %}

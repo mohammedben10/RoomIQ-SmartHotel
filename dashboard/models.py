@@ -14,9 +14,14 @@ class Room(models.Model):
 class SensorData(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='sensor_data')
     timestamp = models.DateTimeField(default=timezone.now)
-    temperature = models.FloatField()
-    gas_ppm = models.FloatField()
-    motion_detected = models.BooleanField(default=False)
+    
+    # Advanced 6-sensor array
+    temperature_c = models.FloatField(default=22.0)
+    humidity_pct = models.FloatField(default=50.0)
+    co2_gas_ppm = models.IntegerField(default=400)
+    light_lux = models.IntegerField(default=300)
+    sound_db = models.FloatField(default=35.0)
+    motion_pir = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.room.room_number} - {self.timestamp.strftime('%H:%M:%S')}"

@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoomIQ — Hotel Intelligence Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600&family=Inconsolata:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-void: #0a0a0c;
+      --gold-1: #d4af37;
+      --gold-2: #f0dfa0;
+      --text-primary: #f5eedc;
+      --text-secondary: #b5a98a;
+      --font-display: 'Cormorant Garamond', serif;
+      --font-body: 'Inter', sans-serif;
+    }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-void);
+      color: var(--text-primary);
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      background-image: radial-gradient(circle at center, rgba(212, 175, 55, 0.05) 0%, var(--bg-void) 70%);
+    }
+    .login-box {
+      background: rgba(28, 22, 16, 0.7);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: 12px;
+      padding: 40px 50px;
+      width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 5px;
+    }
+    .logo span { color: var(--gold-1); }
+    .subtitle {
+      font-size: 11px;
+      color: var(--text-secondary);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+      font-family: 'Inconsolata', monospace;
+    }
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+      box-sizing: border-box;
+    }
+    .input-group input:focus {
+      border-color: var(--gold-1);
+    }
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--gold-1), #b5952f);
+      color: #111;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+    }
+    .error-msg {
+      color: #ef4444;
+      font-size: 12px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-box">
+    <div class="logo">Room<span>IQ</span></div>
+    <div class="subtitle">Command Center Auth</div>
+    
+    {% if form.errors %}
+      <div class="error-msg">Invalid username or password.</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <div class="input-group">
+        <label for="username">Manager ID (Username)</label>
+        <input type="text" name="username" id="username" required autofocus>
+      </div>
+      <div class="input-group">
+        <label for="password">Passcode</label>
+        <input type="password" name="password" id="password" required>
+      </div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="btn-login">AUTHENTICATE</button>
+    </form>
+  </div>
+
+</body>
+</html>

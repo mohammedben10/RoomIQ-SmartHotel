@@ -1,252 +1,407 @@
 {% extends 'base.html' %}
 
 {% block page_title %}Dashboard{% endblock %}
-{% block breadcrumb %}Home &rsaquo; Room Monitoring &rsaquo; Overview{% endblock %}
+{% block breadcrumb %}Home &rsaquo; Floor Monitoring &rsaquo; Command Center{% endblock %}
 
 {% block content %}
+
+<style>
+  /* Glassmorphism & Luxury Theme */
+  .kpi-card {
+    background: rgba(28, 22, 16, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Top Banner for System-Wide Critical Alerts */
+  .system-banner {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    animation: slideDown 0.4s ease-out;
+  }
+  .sys-fire { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #ef4444; }
+  .sys-hvac { background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; color: #3b82f6; }
+  .sys-party { background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; color: #a855f7; }
+  .sys-window { background: rgba(234, 179, 8, 0.15); border: 1px solid #eab308; color: #eab308; }
+  .sys-fault { background: rgba(156, 163, 175, 0.15); border: 1px solid #9ca3af; color: #9ca3af; }
+
+  /* Room Grid */
+  .room-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .room-card {
+    background: rgba(28, 22, 16, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .room-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    border-color: rgba(212, 175, 55, 0.3);
+  }
+
+  .room-card.alert-pulse {
+    border-color: #ef4444;
+    animation: pulse-red 2s infinite;
+  }
+  
+  .room-card.fault-pulse {
+    border-color: #9ca3af;
+    opacity: 0.8;
+  }
+
+  @keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  }
+  
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Card Header */
+  .rc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .rc-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold-2);
+    line-height: 1;
+  }
+
+  .rc-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* Status Badges */
+  .badge-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+  }
+  
+  .rc-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    letter-spacing: 0.5px;
+  }
+
+  .bg-normal { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+  .bg-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
+  .bg-warning { background: var(--warn-bg); color: var(--warning); border: 1px solid var(--warning); }
+  .bg-fault { background: rgba(156, 163, 175, 0.15); color: #9ca3af; border: 1px solid #9ca3af; }
+  
+  .bg-occ { background: rgba(212, 175, 55, 0.15); color: var(--gold-2); border: 1px solid var(--gold-1); }
+  .bg-unocc { background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid rgba(255, 255, 255, 0.1); }
+
+  /* Sensor Mini Grid */
+  .rc-sensors {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    background: rgba(0,0,0,0.2);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.02);
+  }
+
+  .rc-sensor {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rs-icon { font-size: 16px; }
+  .rs-data { display: flex; flex-direction: column; }
+  .rs-val { font-size: 14px; font-weight: 600; color: var(--text-primary); font-family: var(--font-mono); }
+  .rs-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* IoT Controls */
+  .rc-controls {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .ctrl-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .ctrl-btn:hover { background: rgba(255, 255, 255, 0.1); }
+  
+  .ctrl-btn.active.red { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444; }
+  .ctrl-btn.active.green { background: rgba(34, 197, 94, 0.2); border-color: #22c55e; color: #22c55e; }
+  .ctrl-btn.active.door { background: rgba(212, 175, 55, 0.2); border-color: var(--gold-1); color: var(--gold-2); }
+
+</style>
 
   <!-- KPI Row -->
   <div class="kpi-row">
     <div class="kpi-card gold">
-      <div class="kpi-label">Active Rooms</div>
-      <div class="kpi-value" id="kpi-rooms">1 / 50</div>
-      <div class="kpi-trend">&#8593; 18% occupancy rate</div>
+      <div class="kpi-label">Floor Occupancy</div>
+      <div class="kpi-value" id="kpi-rooms">-- / 6</div>
+      <div class="kpi-trend">Live Tracker</div>
     </div>
     <div class="kpi-card teal">
-      <div class="kpi-label">Energy Saved</div>
-      <div class="kpi-value" id="kpi-energy">145 kWh</div>
-      <div class="kpi-trend">&#8593; 12% vs last week</div>
+      <div class="kpi-label">Sensor Health</div>
+      <div class="kpi-value" id="kpi-health">100%</div>
+      <div class="kpi-trend">Hardware Diagnostics</div>
     </div>
     <div class="kpi-card red">
-      <div class="kpi-label">AI Security Alerts</div>
-      <div class="kpi-value" id="kpi-alerts">2</div>
-      <div class="kpi-trend">Requires attention</div>
+      <div class="kpi-label">Active AI Alerts</div>
+      <div class="kpi-value" id="kpi-alerts">0</div>
+      <div class="kpi-trend">Predictive Maintenance</div>
     </div>
   </div>
 
-  <!-- Main Grid -->
-  <div class="grid-container">
-
-    <!-- Column A: Live View -->
-    <div class="panel">
-      <div class="panel-header">
-        <h3>Room 101 &mdash; Live View</h3>
-        <div style="display:flex;gap:8px;">
-          <span class="pill pill-gold">LIVE</span>
-          <span class="pill">ESP32 &middot; Connected</span>
-        </div>
-      </div>
-
-      <div class="panel-body-a">
-
-        <!-- Room Identity -->
-        <div class="room-identity">
-          <div>
-            <div class="room-num">101</div>
-            <div class="room-desc">Deluxe King &middot; Floor 1</div>
-          </div>
-          <div id="occ-pill" class="occ-pill occ-unocc">UNOCCUPIED</div>
-        </div>
-
-        <!-- Sensors -->
-        <div class="sensor-grid">
-          <div class="sensor-tile">
-            <div class="tile-title">DHT-11 Temp</div>
-            <div class="tile-val-amber" id="temp-val">22.1 <span style="font-size:16px">°C</span></div>
-            <div class="thin-bar-bg"><div class="thin-bar-fill" id="temp-bar" style="width:40%"></div></div>
-          </div>
-          <div class="sensor-tile">
-            <div class="tile-title">PIR Motion</div>
-            <div class="tile-val-pir" id="pir-val" style="color:var(--text-muted)">&#8212; Empty</div>
-          </div>
-        </div>
-
-        <!-- Gas Bar -->
-        <div class="gas-box">
-          <div class="gas-top">
-            <span class="gas-label">MQ-2 Gas Level</span>
-            <span class="gas-val" id="gas-val">360 PPM</span>
-          </div>
-          <div class="gas-bar-bg">
-            <div class="gas-bar-fill" id="gas-bar" style="width:20%"></div>
-          </div>
-        </div>
-
-        <!-- AC Control -->
-        <div class="ac-row">
-          <div class="ac-info">
-            <span class="ac-icon">&#10052;</span>
-            <div>
-              <div class="ac-label">Air Conditioning</div>
-              <div class="ac-sub" id="ac-sub">System Standby</div>
-            </div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="ac-toggle" onchange="toggleAC()">
-            <span class="slider"></span>
-          </label>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Column B: AI Watch -->
-    <div class="panel">
-      <div class="panel-header">
-        <h3>AI Watch &mdash; Live Feed</h3>
-        <span class="pill pill-gold">IsolationForest</span>
-      </div>
-
-      <div class="feed-container" id="log-feed">
-        <div class="log-item log-critical">
-          <div class="log-header">
-            <span class="log-time">09:12</span>
-            <span class="log-badge log-badge-crit">CRITICAL</span>
-            <span class="log-room">Room 214</span>
-          </div>
-          <div class="log-msg">Fire hazard detected (High temp gradient + MQ2 spike). Staff notified.</div>
-          <div class="log-sub">IF Score: 0.96 | G: 1420 | T: +8.5</div>
-        </div>
-
-        <div class="log-item log-warning">
-          <div class="log-header">
-            <span class="log-time">10:05</span>
-            <span class="log-badge log-badge-warn">WARNING</span>
-            <span class="log-room">Room 320</span>
-          </div>
-          <div class="log-msg">Suspicious gas pattern. Possible smoking violation.</div>
-          <div class="log-sub">IF Score: 0.74 | G: 510 | T: +1.2</div>
-        </div>
-
-        <div class="log-item log-normal">
-          <div class="log-header">
-            <span class="log-time">11:15</span>
-            <span class="log-badge log-badge-normal">OK</span>
-            <span class="log-room">Room 101</span>
-          </div>
-          <div class="log-msg">Housekeeping initialized. Environment normal.</div>
-          <div class="log-sub">IF Score: -0.15 | G: 345 | T: +0.1</div>
-        </div>
-      </div>
-
-      <div class="stat-chips">
-        <div class="chip">Pr: 0.95</div>
-        <div class="chip">Re: 0.91</div>
-        <div class="chip">IF-Scikit</div>
-        <div class="chip">Trained: 5k</div>
-      </div>
-    </div>
-
+  <div id="system-banner" class="system-banner">
+    <span id="sys-icon">⚠️</span> 
+    <span id="sys-text">SYSTEM ALERT</span>
   </div>
 
-  <!-- Footer -->
-  <footer class="app-footer">
-    <div>&copy; 2026 RoomIQ &mdash; Smart Hotel Intelligence</div>
-    <div class="stack-tags">
-      <span class="stack-tag">ESP32</span>
-      <span class="stack-tag">DHT-11</span>
-      <span class="stack-tag">MQ-2</span>
-      <span class="stack-tag">PIR</span>
-      <span class="stack-tag">IsolationForest</span>
-      <span class="stack-tag">scikit-learn</span>
-    </div>
-  </footer>
+  <!-- Main Room Grid -->
+  <div class="room-grid" id="room-grid">
+    <!-- Cards will be injected here by JS -->
+    <div style="color: var(--text-muted); font-family: var(--font-mono);">Initializing Command Center...</div>
+  </div>
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  let state = { temp: 22.1, gas: 360, motion: false, acOn: false };
+  let topAlertPriority = 0; // To track if we need to show the big banner
 
-  function updateSensors() {
-    document.getElementById('temp-val').innerHTML = `${state.temp.toFixed(1)} <span style="font-size:16px">°C</span>`;
-    let tempPct = Math.min(100, Math.max(0, ((state.temp - 16) / (45 - 16)) * 100));
-    document.getElementById('temp-bar').style.width = `${tempPct}%`;
+  function updateKPIs(rooms) {
+    const occupied = rooms.filter(r => r.pir).length;
+    document.getElementById('kpi-rooms').innerText = `${occupied} / 6`;
+    
+    const faulty = rooms.filter(r => r.sensor_health !== 'OK').length;
+    const healthPct = rooms.length ? Math.round(((rooms.length - faulty) / rooms.length) * 100) : 100;
+    const healthEl = document.getElementById('kpi-health');
+    healthEl.innerText = `${healthPct}%`;
+    healthEl.style.color = healthPct < 100 ? '#ef4444' : 'var(--success)';
+    
+    const alerts = rooms.filter(r => r.ai_alert).length;
+    document.getElementById('kpi-alerts').innerText = alerts;
+  }
 
-    const pirEl = document.getElementById('pir-val');
-    const occPill = document.getElementById('occ-pill');
-    if (state.motion) {
-      pirEl.innerHTML = "&#9679; Motion";
-      pirEl.style.color = "var(--success)";
-      occPill.className = "occ-pill occ-occ";
-      occPill.innerText = "OCCUPIED";
+  function renderGrid(rooms) {
+    const grid = document.getElementById('room-grid');
+    grid.innerHTML = '';
+    
+    let highestAlert = null;
+
+    rooms.forEach(room => {
+      // Logic for AI State
+      let aiClass = 'bg-normal';
+      let aiText = 'SYSTEM OK';
+      let cardPulse = '';
+      
+      if (room.sensor_health !== 'OK') {
+        aiClass = 'bg-fault';
+        aiText = `SENSOR ${room.sensor_health}`;
+        cardPulse = 'fault-pulse';
+        if (!highestAlert && room.sensor_health === 'FAULTY') highestAlert = { type: 'Fault', room: room.room };
+      } else if (room.ai_alert) {
+        cardPulse = 'alert-pulse';
+        if (room.predicted_class === 'Fire') {
+          aiClass = 'bg-danger'; aiText = 'FIRE ALERT'; highestAlert = { type: 'Fire', room: room.room };
+        } else if (room.predicted_class === 'HVAC_Fail') {
+          aiClass = 'bg-warning'; aiText = 'HVAC FAIL'; 
+          if(!highestAlert) highestAlert = { type: 'HVAC', room: room.room };
+        } else if (room.predicted_class === 'Party') {
+          aiClass = 'bg-warning'; aiText = 'NOISE ALERT';
+          if(!highestAlert) highestAlert = { type: 'Party', room: room.room };
+        } else if (room.predicted_class === 'Window_Open') {
+          aiClass = 'bg-warning'; aiText = 'WINDOW OPEN';
+          if(!highestAlert) highestAlert = { type: 'Window', room: room.room };
+        }
+      }
+
+      // Logic for Occupancy
+      const occClass = room.pir ? 'bg-occ' : 'bg-unocc';
+      const occText = room.pir ? 'OCCUPIED' : 'UNOCCUPIED';
+
+      const card = document.createElement('div');
+      card.className = `room-card ${cardPulse}`;
+      card.innerHTML = `
+        <div class="rc-header">
+          <div>
+            <div class="rc-title">${room.room}</div>
+            <div class="rc-subtitle">Deluxe King</div>
+          </div>
+          <div class="badge-container">
+            <span class="rc-badge ${aiClass}">${aiText}</span>
+            <span class="rc-badge ${occClass}">${occText}</span>
+          </div>
+        </div>
+        
+        <div class="rc-sensors">
+          <div class="rc-sensor">
+            <span class="rs-icon">🌡️</span>
+            <div class="rs-data">
+              <span class="rs-val">${room.temp}°C</span>
+              <span class="rs-lbl">Temp</span>
+            </div>
+          </div>
+          <div class="rc-sensor">
+            <span class="rs-icon">💧</span>
+            <div class="rs-data">
+              <span class="rs-val">${room.hum}%</span>
+              <span class="rs-lbl">Humidity</span>
+            </div>
+          </div>
+          <div class="rc-sensor">
+            <span class="rs-icon">💨</span>
+            <div class="rs-data">
+              <span class="rs-val">${room.co2} PPM</span>
+              <span class="rs-lbl">CO2 Level</span>
+            </div>
+          </div>
+          <div class="rc-sensor">
+            <span class="rs-icon">🔊</span>
+            <div class="rs-data">
+              <span class="rs-val">${room.sound} dB</span>
+              <span class="rs-lbl">Sound Level</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="rc-controls">
+          <button class="ctrl-btn ${room.door_open ? 'active door' : ''}" onclick="toggleControl('${room.room}', 'door', ${!room.door_open})">
+            🚪 ${room.door_open ? 'OPEN' : 'CLOSED'}
+          </button>
+          <button class="ctrl-btn ${room.red_led ? 'active red' : ''}" onclick="toggleControl('${room.room}', 'red_led', ${!room.red_led})">
+            🔴 R-LED
+          </button>
+          <button class="ctrl-btn ${room.green_led ? 'active green' : ''}" onclick="toggleControl('${room.room}', 'green_led', ${!room.green_led})">
+            🟢 G-LED
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    // Update Global Banner
+    const banner = document.getElementById('system-banner');
+    if (highestAlert) {
+      banner.style.display = 'flex';
+      banner.className = 'system-banner pulse';
+      if (highestAlert.type === 'Fire') {
+        banner.classList.add('sys-fire');
+        document.getElementById('sys-icon').innerText = '🔥';
+        document.getElementById('sys-text').innerText = `CRITICAL ALERT: FIRE DETECTED IN ROOM ${highestAlert.room}. Evacuate immediately.`;
+      } else if (highestAlert.type === 'HVAC') {
+        banner.classList.add('sys-hvac');
+        document.getElementById('sys-icon').innerText = '❄️';
+        document.getElementById('sys-text').innerText = `WARNING: HVAC FAILURE IN ROOM ${highestAlert.room}. Maintenance dispatch required.`;
+      } else if (highestAlert.type === 'Party') {
+        banner.classList.add('sys-party');
+        document.getElementById('sys-icon').innerText = '🎉';
+        document.getElementById('sys-text').innerText = `ALERT: UNAUTHORIZED PARTY IN ROOM ${highestAlert.room}. Security dispatch recommended.`;
+      } else if (highestAlert.type === 'Window') {
+        banner.classList.add('sys-window');
+        document.getElementById('sys-icon').innerText = '🌬️';
+        document.getElementById('sys-text').innerText = `NOTICE: WINDOW LEFT OPEN IN ROOM ${highestAlert.room}. Energy waste detected.`;
+      } else if (highestAlert.type === 'Fault') {
+        banner.classList.add('sys-fault');
+        document.getElementById('sys-icon').innerText = '🛠️';
+        document.getElementById('sys-text').innerText = `HARDWARE FAULT: Sensors offline in Room ${highestAlert.room}. IT check required.`;
+      }
     } else {
-      pirEl.innerHTML = "&#8212; Empty";
-      pirEl.style.color = "var(--text-muted)";
-      occPill.className = "occ-pill occ-unocc";
-      occPill.innerText = "UNOCCUPIED";
-    }
-
-    const gasEl = document.getElementById('gas-val');
-    const gasBar = document.getElementById('gas-bar');
-    gasEl.innerText = `${Math.round(state.gas)} PPM`;
-    gasBar.style.width = `${Math.min(100, (state.gas / 1800) * 100)}%`;
-    if (state.gas > 600) {
-      gasBar.style.background = "var(--danger)"; gasEl.style.color = "var(--danger)";
-    } else if (state.gas > 450) {
-      gasBar.style.background = "var(--warning)"; gasEl.style.color = "var(--warning)";
-    } else {
-      gasBar.style.background = "var(--success)"; gasEl.style.color = "var(--success)";
+      banner.style.display = 'none';
     }
   }
 
-  function toggleAC() {
-    state.acOn = document.getElementById('ac-toggle').checked;
-    const sub = document.getElementById('ac-sub');
-    sub.innerText = state.acOn ? "Cooling Active" : "System Standby";
-    sub.style.color = state.acOn ? "var(--gold-2)" : "var(--text-muted)";
-  }
-
-  function _now() {
-    const n = new Date();
-    return String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
-  }
-
-  function addLog(time, type, room, msg, meta) {
-    const feed = document.getElementById('log-feed');
-    const el = document.createElement('div');
-    el.className = `log-item log-${type} slide-in`;
-    if (type === 'critical') el.classList.add('pulse-red');
-    const badges = { normal:'log-badge-normal', warning:'log-badge-warn', critical:'log-badge-crit' };
-    const labels = { normal:'OK', warning:'WARNING', critical:'CRITICAL' };
-    el.innerHTML = `
-      <div class="log-header">
-        <span class="log-time">${time}</span>
-        <span class="log-badge ${badges[type]}">${labels[type]}</span>
-        <span class="log-room">${room}</span>
-      </div>
-      <div class="log-msg">${msg}</div>
-      <div class="log-sub">${meta}</div>`;
-    feed.insertBefore(el, feed.firstChild);
-    while (feed.children.length > 12) feed.removeChild(feed.lastChild);
-  }
-
-  setInterval(() => {
-    fetch('/api/v1/rooms/101/status')
+  function fetchAllStatus() {
+    fetch('/api/v1/rooms/all_status')
       .then(r => r.json())
       .then(data => {
-        if (!data.temp) return;
-        state.temp = data.temp;
-        state.gas = data.mqtt_gas;
-        state.motion = data.pir;
+        if (!data.rooms) return;
+        
+        // Sort rooms: Alerts first, then Faults, then normal
+        let sortedRooms = data.rooms.sort((a, b) => {
+          if (a.ai_alert && !b.ai_alert) return -1;
+          if (!a.ai_alert && b.ai_alert) return 1;
+          if (a.sensor_health !== 'OK' && b.sensor_health === 'OK') return -1;
+          if (a.sensor_health === 'OK' && b.sensor_health !== 'OK') return 1;
+          return a.room.localeCompare(b.room);
+        });
 
-        let banner = document.getElementById('ai-banner');
-        if (data.ai_alert) {
-          if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'ai-banner';
-            banner.style.cssText = "background:var(--danger-bg);border:1px solid var(--danger);color:var(--danger);padding:12px 16px;margin-bottom:18px;font-weight:600;border-radius:5px;font-family:var(--font-mono);font-size:13px;";
-            banner.innerHTML = `&#9650; AI ANOMALY DETECTED &mdash; Room 101 (Score: ${data.anomaly_score})`;
-            document.querySelector('.grid-container').insertAdjacentElement('beforebegin', banner);
-            addLog(_now(), 'critical', 'Room 101', 'Isolation Forest detected anomaly.', `Score: ${data.anomaly_score}`);
-          }
-        } else {
-          if (banner) { banner.remove(); addLog(_now(), 'normal', 'Room 101', 'Conditions returned to normal.', `Score: ${data.anomaly_score}`); }
-        }
-        updateSensors();
-      }).catch(() => {});
-  }, 2000);
+        updateKPIs(sortedRooms);
+        renderGrid(sortedRooms);
+      })
+      .catch(err => console.error("Polling error:", err));
+  }
 
-  updateSensors();
+  function toggleControl(roomId, action, state) {
+    fetch(`/api/v1/rooms/${roomId}/control`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action, state: state })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'success') {
+        fetchAllStatus(); // Immediately update UI
+      } else {
+        console.error("Control error:", data.msg);
+      }
+    });
+  }
+
+  // Initial fetch and loop
+  fetchAllStatus();
+  setInterval(fetchAllStatus, 2000);
+
 </script>
 {% endblock %}

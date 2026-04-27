@@ -10,6 +10,8 @@ urlpatterns = [
     path('settings/', views.settings_view, name='settings'),
     path('simulator/', views.simulator, name='simulator'),
     path('api/v1/rooms/<int:room_id>/status', views.get_room_status, name='get_room_status'),
+    path('api/v1/rooms/all_status', views.get_all_status, name='get_all_status'),
     path('api/v1/rooms/<int:room_id>/ac', views.toggle_ac, name='toggle_ac'),
+    path('api/v1/rooms/<int:room_id>/control', views.control_device, name='control_device'),
     path('api/v1/update_sensors', views.update_sensors, name='update_sensors'),
 ]

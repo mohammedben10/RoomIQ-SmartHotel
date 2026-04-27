@@ -1,59 +1,212 @@
 {% extends 'base.html' %}
 
+{% block page_title %}Rooms Management{% endblock %}
+{% block breadcrumb %}Home &rsaquo; Rooms{% endblock %}
+
 {% block content %}
-<div class="panel">
-  <div class="panel-header">
-    <h3>Room Directory</h3>
-    <div style="display: flex; gap: 8px;">
-      <span class="pill" style="color: var(--brand-blue-2); border-color: var(--brand-blue-1);">Floor 1 & 2</span>
+<style>
+  .matrix-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .matrix-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--bg-border);
+  }
+  .matrix-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--gold-2);
+  }
+  .matrix-controls {
+    display: flex;
+    gap: 12px;
+  }
+  .matrix-search {
+    background: var(--bg-raised);
+    border: 1px solid var(--bg-border);
+    color: var(--text-primary);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+    width: 250px;
+  }
+  .matrix-search:focus {
+    border-color: var(--gold-1);
+  }
+  .matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+  }
+  .matrix-table th {
+    text-align: left;
+    padding: 14px 20px;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--bg-border);
+    background: var(--bg-raised);
+  }
+  .matrix-table td {
+    padding: 16px 20px;
+    font-size: 13px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--bg-border);
+    vertical-align: middle;
+  }
+  .matrix-table tbody tr {
+    transition: background 0.2s;
+  }
+  .matrix-table tbody tr:hover {
+    background: var(--bg-hover);
+  }
+  .matrix-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .col-room { font-weight: 700; font-size: 16px; color: var(--gold-2); }
+  .col-type { color: var(--text-secondary); }
+  .status-pill {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .sp-ok { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+  .sp-warn { background: var(--warn-bg); color: var(--warning); border: 1px solid var(--warning); }
+  .sp-crit { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
+  
+  .occ-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-occ { background: var(--gold-1); box-shadow: 0 0 8px var(--gold-glow); }
+  .dot-unocc { background: var(--bg-border); }
+
+  .action-btn {
+    background: transparent;
+    border: 1px solid var(--bg-border);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .action-btn:hover {
+    background: var(--bg-raised);
+    color: var(--gold-2);
+    border-color: var(--gold-1);
+  }
+</style>
+
+<div class="matrix-container slide-in">
+  <div class="matrix-header">
+    <div class="matrix-title">All Rooms Matrix</div>
+    <div class="matrix-controls">
+      <input type="text" class="matrix-search" placeholder="Search by Room # or Type...">
+      <button class="action-btn">Filter</button>
     </div>
   </div>
   
-  <div class="panel-body-a" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-    
-    <!-- Room Card 101 -->
-    <div class="sensor-tile" style="border-left: 4px solid var(--success);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div class="title-font" style="font-size: 20px;">101 &middot; King</div>
-        <span class="pill" style="color: var(--text-muted-1);">Unoccupied</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted-2);">
-        <span class="mono">22.1 °C</span>
-        <span class="mono">360 PPM</span>
-        <span class="mono" style="color: var(--warning);">AC: Off</span>
-      </div>
-    </div>
-
-    <!-- Room Card 102 -->
-    <div class="sensor-tile" style="border-left: 4px solid var(--success);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div class="title-font" style="font-size: 20px;">102 &middot; Double</div>
-        <span class="pill" style="color: var(--success); border-color: var(--success);">Occupied</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted-2);">
-        <span class="mono">21.5 °C</span>
-        <span class="mono">345 PPM</span>
-        <span class="mono" style="color: var(--accent-cyan-2);">AC: Cooling</span>
-      </div>
-    </div>
-
-    <!-- Room Card 214 -->
-    <div class="sensor-tile" style="border-left: 4px solid var(--danger-1);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div class="title-font" style="font-size: 20px;">214 &middot; King</div>
-        <span class="pill pulse-red" style="color: var(--danger-1); border-color: var(--danger-1);">Fire Hazard Alert</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted-2);">
-        <span class="mono" style="color: var(--danger-1);">32.8 °C</span>
-        <span class="mono" style="color: var(--danger-1);">1420 PPM</span>
-        <span class="mono" style="color: var(--warning);">AC: Off</span>
-      </div>
-    </div>
-    
-  </div>
+  <table class="matrix-table">
+    <thead>
+      <tr>
+        <th>Room</th>
+        <th>Category</th>
+        <th>Occupancy</th>
+        <th>System Health</th>
+        <th>AI Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="col-room">101</td>
+        <td class="col-type">Deluxe King</td>
+        <td>
+          <div class="occ-indicator">
+            <span class="dot dot-occ"></span> Occupied
+          </div>
+        </td>
+        <td><span class="status-pill sp-ok">OK</span></td>
+        <td>Normal</td>
+        <td><button class="action-btn">Inspect</button></td>
+      </tr>
+      <tr>
+        <td class="col-room">102</td>
+        <td class="col-type">Premium Suite</td>
+        <td>
+          <div class="occ-indicator">
+            <span class="dot dot-unocc"></span> Unoccupied
+          </div>
+        </td>
+        <td><span class="status-pill sp-warn">MAINTENANCE REQ</span></td>
+        <td>HVAC Anomaly</td>
+        <td><button class="action-btn">Inspect</button></td>
+      </tr>
+      <tr>
+        <td class="col-room">103</td>
+        <td class="col-type">Deluxe King</td>
+        <td>
+          <div class="occ-indicator">
+            <span class="dot dot-occ"></span> Occupied
+          </div>
+        </td>
+        <td><span class="status-pill sp-ok">OK</span></td>
+        <td>Normal</td>
+        <td><button class="action-btn">Inspect</button></td>
+      </tr>
+      <tr>
+        <td class="col-room">104</td>
+        <td class="col-type">Standard Double</td>
+        <td>
+          <div class="occ-indicator">
+            <span class="dot dot-unocc"></span> Unoccupied
+          </div>
+        </td>
+        <td><span class="status-pill sp-crit">FAULT</span></td>
+        <td>Sensor Offline</td>
+        <td><button class="action-btn">Inspect</button></td>
+      </tr>
+      <tr>
+        <td class="col-room">105</td>
+        <td class="col-type">Presidential Suite</td>
+        <td>
+          <div class="occ-indicator">
+            <span class="dot dot-occ"></span> Occupied
+          </div>
+        </td>
+        <td><span class="status-pill sp-ok">OK</span></td>
+        <td>Normal</td>
+        <td><button class="action-btn">Inspect</button></td>
+      </tr>
+      <tr>
+        <td class="col-room">106</td>
+        <td class="col-type">Standard Double</td>
+        <td>
+          <div class="occ-indicator">
+            <span class="dot dot-unocc"></span> Unoccupied
+          </div>
+        </td>
+        <td><span class="status-pill sp-ok">OK</span></td>
+        <td>Normal</td>
+        <td><button class="action-btn">Inspect</button></td>
+      </tr>
+    </tbody>
+  </table>
 </div>
-<script>
-  document.querySelector('.breadcrumb-subtitle').innerText = "Home / Directory / Rooms";
-  document.querySelector('.topbar h2').innerText = "Rooms Management";
-</script>
 {% endblock %}

@@ -1,46 +1,199 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<div class="kpi-row">
-  <div class="kpi-card teal">
-    <div class="kpi-label">Today's Usage</div>
-    <div class="kpi-value mono">1,240 kWh</div>
-    <div class="kpi-trend" style="color: var(--success)">↓ 4% vs Yesterday</div>
-  </div>
-  <div class="kpi-card blue">
-    <div class="kpi-label">HVAC Optimization Status</div>
-    <div class="kpi-value mono">Peak</div>
-    <div class="kpi-trend" style="color: var(--accent-cyan-2)">AI Throttling Active</div>
-  </div>
-  <div class="kpi-card blue">
-    <div class="kpi-label">Estimated AI Savings</div>
-    <div class="kpi-value mono">$184.20</div>
-    <div class="kpi-trend" style="color: var(--brand-blue-2)">This Week</div>
-  </div>
-</div>
+{% block page_title %}Energy Management{% endblock %}
+{% block breadcrumb %}Home &rsaquo; Operations &rsaquo; Energy{% endblock %}
 
-<div class="panel">
-  <div class="panel-header">
-    <h3>Energy Insights</h3>
-    <span class="pill" style="color: var(--success); border-color: var(--success);">Eco Mode</span>
+{% block content %}
+<style>
+  .energy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .e-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-border);
+    border-radius: 8px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .e-card::after {
+    content: '⚡';
+    position: absolute;
+    bottom: -20px;
+    right: -10px;
+    font-size: 100px;
+    opacity: 0.03;
+    z-index: 0;
+  }
+  .e-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  .e-val {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+  }
+  .e-sub {
+    font-size: 12px;
+    color: var(--success);
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    position: relative;
+    z-index: 1;
+  }
+  
+  .hvac-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-border);
+    border-radius: 8px;
+    padding: 24px;
+  }
+  .hvac-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--bg-border);
+  }
+  .hvac-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--gold-2);
+  }
+  
+  .floor-plan {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .room-node {
+    border: 1px solid var(--bg-border);
+    background: var(--bg-raised);
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .rn-left { display: flex; flex-direction: column; gap: 4px; }
+  .rn-name { font-weight: 600; color: var(--text-primary); }
+  .rn-status { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+  .rn-power { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+  
+  .pwr-high { color: var(--warning); }
+  .pwr-med { color: var(--gold-2); }
+  .pwr-low { color: var(--success); }
+  .pwr-off { color: var(--text-muted); }
+
+  .optimization-banner {
+    margin-top: 24px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .opt-icon { font-size: 24px; }
+  .opt-text h4 { color: #3b82f6; margin-bottom: 4px; font-family: var(--font-display); font-size: 18px; }
+  .opt-text p { color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
+
+</style>
+
+<div class="slide-in">
+  <div class="energy-grid">
+    <div class="e-card">
+      <div class="e-title">Current Floor Draw</div>
+      <div class="e-val" style="color: var(--gold-2);">4.2 kW</div>
+      <div class="e-sub" style="color: var(--text-muted);">Normal operating range</div>
+    </div>
+    <div class="e-card">
+      <div class="e-title">AI Energy Savings (24h)</div>
+      <div class="e-val" style="color: var(--success);">14.5%</div>
+      <div class="e-sub">↓ 1.2 kWh vs baseline</div>
+    </div>
+    <div class="e-card">
+      <div class="e-title">Carbon Offset Estimate</div>
+      <div class="e-val" style="color: #3b82f6;">0.8 kg</div>
+      <div class="e-sub" style="color: #3b82f6;">CO2e reduction today</div>
+    </div>
   </div>
-  <div class="panel-body-a">
-    <div class="sensor-grid">
-      <div class="sensor-tile">
-        <div class="tile-title mono">Auto-Shutdown Events</div>
-        <div class="title-font" style="font-size: 24px; color: var(--text-main);">14 Times Today</div>
-        <div class="mono" style="font-size: 12px; color: var(--text-muted-2); margin-top: 5px;">PIR Sensors detected empty rooms and turned off AC.</div>
+
+  <div class="hvac-container">
+    <div class="hvac-header">
+      <div class="hvac-title">Live Room Energy Profiling</div>
+      <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">Real-time HVAC & Lighting Load</div>
+    </div>
+    
+    <div class="floor-plan">
+      <div class="room-node">
+        <div class="rn-left">
+          <span class="rn-name">Room 101</span>
+          <span class="rn-status">Occupied • AC Auto</span>
+        </div>
+        <div class="rn-power pwr-med">1.2 kW</div>
       </div>
-      <div class="sensor-tile">
-        <div class="tile-title mono">Average AC Runtime</div>
-        <div class="title-font" style="font-size: 24px; color: var(--text-main);">3.2 hrs / room</div>
-        <div class="mono" style="font-size: 12px; color: var(--text-muted-2); margin-top: 5px;">Down from 5.1 hrs manual baseline.</div>
+      <div class="room-node">
+        <div class="rn-left">
+          <span class="rn-name">Room 102</span>
+          <span class="rn-status">Unoccupied • Standby</span>
+        </div>
+        <div class="rn-power pwr-low">0.1 kW</div>
+      </div>
+      <div class="room-node" style="border-color: var(--warning);">
+        <div class="rn-left">
+          <span class="rn-name">Room 103</span>
+          <span class="rn-status">Occupied • Max Cool</span>
+        </div>
+        <div class="rn-power pwr-high">2.4 kW</div>
+      </div>
+      <div class="room-node">
+        <div class="rn-left">
+          <span class="rn-name">Room 104</span>
+          <span class="rn-status">Unoccupied • Off</span>
+        </div>
+        <div class="rn-power pwr-off">0.0 kW</div>
+      </div>
+      <div class="room-node">
+        <div class="rn-left">
+          <span class="rn-name">Room 105</span>
+          <span class="rn-status">Occupied • Eco Mode</span>
+        </div>
+        <div class="rn-power pwr-low">0.5 kW</div>
+      </div>
+      <div class="room-node">
+        <div class="rn-left">
+          <span class="rn-name">Room 106</span>
+          <span class="rn-status">Unoccupied • Standby</span>
+        </div>
+        <div class="rn-power pwr-low">0.1 kW</div>
+      </div>
+    </div>
+
+    <div class="optimization-banner">
+      <div class="opt-icon">🧠</div>
+      <div class="opt-text">
+        <h4>RoomIQ Optimization Active</h4>
+        <p>The system successfully detected an open window in Room 106 earlier today, automatically suspending the HVAC unit. This single action prevented approximately 0.4 kWh of wasted energy over a 2-hour period.</p>
       </div>
     </div>
   </div>
 </div>
-<script>
-  document.querySelector('.breadcrumb-subtitle').innerText = "Home / Operations / Energy";
-  document.querySelector('.topbar h2').innerText = "Energy Optimization";
-</script>
 {% endblock %}

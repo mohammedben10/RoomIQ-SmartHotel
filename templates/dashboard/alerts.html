@@ -1,49 +1,234 @@
 {% extends 'base.html' %}
 
+{% block page_title %}System Alerts{% endblock %}
+{% block breadcrumb %}Home &rsaquo; Intelligence &rsaquo; Alerts{% endblock %}
+
 {% block content %}
-<div class="panel">
-  <div class="panel-header">
-    <h3>Global Security & Anomaly Logs</h3>
-    <div style="display: flex; gap: 8px;">
-      <span class="pill pulse-red" style="color: var(--danger-1); border-color: var(--danger-1);">2 Unresolved</span>
+<style>
+  .alerts-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--bg-border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 500px;
+  }
+  .alerts-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--bg-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .alerts-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--gold-2);
+  }
+  .alerts-filter {
+    display: flex;
+    gap: 12px;
+  }
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--bg-border);
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { background: var(--bg-raised); }
+  .filter-btn.active { background: var(--gold-dim); color: var(--gold-2); border-color: var(--gold-1); }
+
+  .timeline {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .timeline-item {
+    display: flex;
+    gap: 20px;
+    position: relative;
+  }
+  
+  /* The line connecting items */
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    top: 30px;
+    bottom: -20px;
+    left: 45px;
+    width: 2px;
+    background: var(--bg-border);
+    z-index: 0;
+  }
+  .timeline-item:last-child::before { display: none; }
+
+  .tl-time {
+    width: 80px;
+    flex-shrink: 0;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    padding-top: 6px;
+  }
+  
+  .tl-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-raised);
+    border: 2px solid var(--bg-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+  .tl-icon.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+  .tl-icon.warning { background: var(--warn-bg); border-color: var(--warning); color: var(--warning); }
+  .tl-icon.info { background: rgba(59, 130, 246, 0.15); border-color: #3b82f6; color: #3b82f6; }
+  
+  .tl-content {
+    background: var(--bg-raised);
+    border: 1px solid var(--bg-border);
+    border-radius: 6px;
+    padding: 16px;
+    flex: 1;
+    transition: transform 0.2s;
+  }
+  .tl-content:hover { transform: translateX(4px); border-color: var(--gold-1); }
+  
+  .tl-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .tl-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+  }
+  .tl-room {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--gold-2);
+    font-weight: 700;
+  }
+  .tl-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .tl-meta {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--bg-border);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 16px;
+  }
+
+</style>
+
+<div class="alerts-container slide-in">
+  <div class="alerts-header">
+    <div class="alerts-title">Incident Command Log</div>
+    <div class="alerts-filter">
+      <button class="filter-btn active">All Events</button>
+      <button class="filter-btn">Critical</button>
+      <button class="filter-btn">Warnings</button>
+      <button class="filter-btn">System</button>
     </div>
   </div>
   
-  <div class="feed-container" style="height: auto; max-height: 600px;">
-    <!-- Log Items -->
-    <div class="log-item log-critical pulse-red">
-      <div class="log-header">
-        <span class="log-time mono">09:12 Today</span>
-        <span class="log-badge log-badge-crit mono">🔴 CRITICAL</span>
-        <span style="font-weight: 700; color: var(--text-main);">Room 214</span>
+  <div class="timeline">
+    
+    <div class="timeline-item">
+      <div class="tl-time">10 mins ago</div>
+      <div class="tl-icon danger">🔥</div>
+      <div class="tl-content">
+        <div class="tl-header">
+          <div class="tl-title" style="color: var(--danger);">CRITICAL FIRE DETECTED</div>
+          <div class="tl-room">ROOM 102</div>
+        </div>
+        <div class="tl-desc">
+          Automated containment protocols activated. Rapid temperature increase accompanied by MQ-2 gas detection (Smoke/Combustibles). 
+        </div>
+        <div class="tl-meta">
+          <span>Action Taken: Red LED triggered, Evacuation door opened.</span>
+          <span>Confidence: 99.2%</span>
+        </div>
       </div>
-      <div class="log-msg" style="font-size: 14px;">Fire hazard detected (High temp gradient + MQ2 spike). Staff notified. Alarm triggered via MQTT.</div>
-      <div class="log-sub mono">IF Score: 0.96 | G: 1420 | T: +8.5 | STATUS: UNRESOLVED</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-time">1 hour ago</div>
+      <div class="tl-icon warning">🎉</div>
+      <div class="tl-content">
+        <div class="tl-header">
+          <div class="tl-title" style="color: var(--warning);">UNAUTHORIZED PARTY</div>
+          <div class="tl-room">ROOM 105</div>
+        </div>
+        <div class="tl-desc">
+          Sustained high decibel levels (&gt;85dB) and rapid accumulation of CO2 detected over a 15-minute rolling window.
+        </div>
+        <div class="tl-meta">
+          <span>Action Taken: Security dispatched.</span>
+          <span>Confidence: 94.7%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="tl-time">4 hours ago</div>
+      <div class="tl-icon warning">❄️</div>
+      <div class="tl-content">
+        <div class="tl-header">
+          <div class="tl-title" style="color: var(--warning);">HVAC FAILURE</div>
+          <div class="tl-room">ROOM 102</div>
+        </div>
+        <div class="tl-desc">
+          Temperature drifting outside of setpoint bounds. HVAC unit failing to respond to cooling commands.
+        </div>
+        <div class="tl-meta">
+          <span>Action Taken: Maintenance ticket auto-generated.</span>
+          <span>Confidence: 88.1%</span>
+        </div>
+      </div>
     </div>
     
-    <div class="log-item log-warning">
-      <div class="log-header">
-        <span class="log-time mono">10:05 Today</span>
-        <span class="log-badge log-badge-warn mono">⚠ WARN</span>
-        <span style="font-weight: 700; color: var(--text-main);">Room 320</span>
+    <div class="timeline-item">
+      <div class="tl-time">Yesterday</div>
+      <div class="tl-icon info">🌬️</div>
+      <div class="tl-content">
+        <div class="tl-header">
+          <div class="tl-title" style="color: #3b82f6;">WINDOW OPEN (HVAC ON)</div>
+          <div class="tl-room">ROOM 106</div>
+        </div>
+        <div class="tl-desc">
+          Sudden equalization of internal temperature/humidity with exterior ambient levels while HVAC load is active.
+        </div>
+        <div class="tl-meta">
+          <span>Action Taken: HVAC automatically suspended.</span>
+          <span>Power Saved: ~0.4 kWh</span>
+        </div>
       </div>
-      <div class="log-msg" style="font-size: 14px;">Suspicious gas pattern. Possible smoking violation. Security protocol activated.</div>
-      <div class="log-sub mono">IF Score: 0.74 | G: 510 | T: +1.2 | STATUS: PENDING</div>
     </div>
-    
-    <div class="log-item log-normal">
-      <div class="log-header">
-        <span class="log-time mono">Yesterday, 14:20</span>
-        <span class="log-badge log-badge-warn mono">⚠ WARN</span>
-        <span style="font-weight: 700; color: var(--text-main);">Room 101</span>
-      </div>
-      <div class="log-msg" style="font-size: 14px;">Elevated MQ-2 levels (Smoking). Warning sent to guest.</div>
-      <div class="log-sub mono">IF Score: 0.62 | G: 610 | T: +0.4 | STATUS: RESOLVED</div>
-    </div>
+
   </div>
 </div>
-<script>
-  document.querySelector('.breadcrumb-subtitle').innerText = "Home / Security / Alerts Database";
-  document.querySelector('.topbar h2').innerText = "Alert Center";
-</script>
 {% endblock %}
